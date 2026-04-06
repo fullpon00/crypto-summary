@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Source {
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  url           String
+  feedUrl       String
+  language      String    @default("en")
+  isActive      Boolean   @default(true)
+  fetchInterval Int       @default(15)
+  licenseStatus String    @default("link-only")
+  lastFetchedAt DateTime?
+  articles      Article[]
+  createdAt     DateTime  @default(now())
+
+  @@map("sources")
+}
+
+model Article {
+  id              String               @id @default(uuid())
+  sourceId        String
+  source          Source               @relation(fields: [sourceId], references: [id])
+  slug            String               @unique
+  originalUrl     String
+  titleOriginal   String
+  summaryOriginal String?
+  language        String               @default("en")
+  imageUrl        String?
+  isBreaking      Boolean              @default(false)
+  importanceScore Int                  @default(50)
+  publishedAt     DateTime
+  dedupeHash      String               @unique
+  viewCount       Int                  @default(0)
+  translations    ArticleTranslation[]
+  categories      ArticleCategory[]
+  createdAt       DateTime             @default(now())
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([viewCount(sort: Desc)])
+  @@map("articles")
+}
+
+model ArticleTranslation {
+  id           String   @id @default(uuid())
+  articleId    String
+  article      Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  language     String
+  title        String
+  summary      String?
+  translatedBy String   @default("claude")
+  createdAt    DateTime @default(now())
+
+  @@unique([articleId, language])
+  @@index([articleId])
+  @@map("article_translations")
+}
+
+model Category {
+  id        String            @id @default(uuid())
+  slug      String            @unique
+  nameEn    String
+  nameJa    String
+  tier      Int               @default(2)
+  sortOrder Int               @default(0)
+  articles  ArticleCategory[]
+
+  @@map("categories")
+}
+
+model ArticleCategory {
+  articleId  String
+  categoryId String
+  article    Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([articleId, categoryId])
+  @@map("article_categories")
+}
+
+model MarketData {
+  id         String   @id @default(uuid())
+  metricType String
+  symbol     String?
+  value      Decimal  @db.Decimal(20, 8)
+  metadata   Json?
+  source     String
+  recordedAt DateTime @default(now())
+
+  @@index([metricType, recordedAt(sort: Desc)])
+  @@map("market_data")
+}
