@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Shared across both themes */
+:root {
+  --accent-gold: #F0B90B;
+  --positive: #0ECB81;
+  --negative: #F6465D;
+}
+
+/* Light theme (default) */
+:root:not(.dark) {
+  --bg-base: #FFFFFF;
+  --bg-surface: #F5F7FA;
+  --bg-elevated: #EAECEF;
+  --text-primary: #1A1A2E;
+  --text-secondary: #5E6673;
+  --border: #E0E3E7;
+}
+
+/* Dark theme */
+.dark {
+  --bg-base: #0B0E11;
+  --bg-surface: #1E2329;
+  --bg-elevated: #2B3139;
+  --text-primary: #EAECEF;
+  --text-secondary: #848E9C;
+  --border: #2B3139;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+}
