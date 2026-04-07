@@ -29,7 +29,10 @@
     "relatedNews": "関連ニュース",
     "disclaimer": "本サイトは情報提供のみを目的としており、投資助言ではありません。",
     "backToNews": "← ニュース一覧へ",
-    "noArticles": "記事が見つかりませんでした"
+    "noArticles": "記事が見つかりませんでした",
+    "readFullArticle": "元の記事を読む",
+    "published": "公開日",
+    "source": "ソース"
   },
   "sidebar": {
     "trending": "トレンド",
@@ -37,6 +40,8 @@
   },
   "sources": {
     "title": "ニュースソース",
+    "description": "配信元一覧",
+    "visitSite": "サイトを見る",
     "lastFetched": "最終取得",
     "never": "未取得"
   },

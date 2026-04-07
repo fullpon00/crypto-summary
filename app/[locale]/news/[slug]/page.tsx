@@ -1,55 +1,68 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-import { prisma } from '@/lib/db/prisma'
 import { LanguageToggle } from '@/components/news/LanguageToggle'
 import { ViewTracker } from '@/components/news/ViewTracker'
 import { ShareButtons } from '@/components/news/ShareButtons'
 
-interface DetailProps {
+interface ArticleData {
+  id: string
+  slug: string
+  titleOriginal: string
+  summaryOriginal: string | null
+  title: string
+  summary: string | null
+  content: string | null
+  originalUrl: string
+  publishedAt: string
+  isBreaking: boolean
+  viewCount: number
+  source: { name: string; slug: string; url: string }
+  categories: { slug: string; nameJa: string; nameEn: string }[]
+  translations: { language: string; title: string; summary: string | null }[]
+  allTranslations: { language: string; title: string; summary: string | null }[]
+}
+
+type Props = {
   params: Promise<{ locale: string; slug: string }>
 }
 
-export default async function NewsDetailPage({ params }: DetailProps) {
+async function fetchArticle(slug: string, locale: string): Promise<ArticleData | null> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+  const res = await fetch(`${baseUrl}/api/articles/${slug}?locale=${locale}`, {
+    next: { revalidate: 300 },
+  })
+  if (!res.ok) return null
+  return res.json()
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params
+  const article = await fetchArticle(slug, locale)
+  if (!article) return {}
+  return {
+    title: article.title,
+    description: article.summary ?? undefined,
+  }
+}
+
+export default async function NewsDetailPage({ params }: Props) {
   const { locale, slug } = await params
   const t = await getTranslations('article')
 
-  const article = await prisma.article.findUnique({
-    where: { slug },
-    include: {
-      source: true,
-      translations: true,
-      categories: { include: { category: true } },
-    },
-  })
-
+  const article = await fetchArticle(slug, locale)
   if (!article) notFound()
 
-  // Pick the current locale's translation for toggle
-  const localeTranslation = article.translations.find((tr) => tr.language === locale)
+  const localeTranslation = article.allTranslations.find((tr) => tr.language === locale)
+  const hasTranslations = Boolean(localeTranslation)
 
-  // Related articles
-  const relatedCategoryId = article.categories[0]?.categoryId
-  const related = relatedCategoryId
-    ? await prisma.article.findMany({
-        where: {
-          id: { not: article.id },
-          categories: { some: { categoryId: relatedCategoryId } },
-        },
-        include: {
-          translations: { where: { language: locale } },
-          source: { select: { name: true } },
-        },
-        orderBy: { publishedAt: 'desc' },
-        take: 3,
-      })
-    : []
+  const shareUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/${locale}/news/${slug}`
 
   return (
-    <div className="max-w-3xl mx-auto py-6 px-4 pb-20 lg:pb-6">
-      {/* Track view */}
-      <ViewTracker slug={slug} />
-
+    <article className="max-w-3xl mx-auto py-6 px-4 pb-20 lg:pb-6">
       {/* Back link */}
       <Link
         href={`/${locale}`}
@@ -59,40 +72,74 @@ export default async function NewsDetailPage({ params }: DetailProps) {
         {t('backToNews')}
       </Link>
 
-      {/* Categories */}
-      <div className="flex gap-2 mb-3 flex-wrap">
-        {article.categories.map((ac) => (
-          <span
-            key={ac.categoryId}
-            className="text-xs px-2 py-0.5 rounded-sm border"
-            style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
-          >
-            {locale === 'ja' ? ac.category.nameJa : ac.category.nameEn}
-          </span>
-        ))}
-      </div>
+      {/* Header */}
+      <header>
+        {/* Categories */}
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {article.categories.map((cat) => (
+            <span
+              key={cat.slug}
+              className="text-xs px-2 py-0.5 rounded-sm border"
+              style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
+            >
+              {locale === 'ja' ? cat.nameJa : cat.nameEn}
+            </span>
+          ))}
+        </div>
 
-      {/* Language toggle with title + summary */}
-      <LanguageToggle
-        originalTitle={article.titleOriginal}
-        translatedTitle={localeTranslation?.title}
-        originalSummary={article.summaryOriginal ?? undefined}
-        translatedSummary={localeTranslation?.summary ?? undefined}
-        originalLabel={t('original')}
-        translationLabel={t('translation')}
-        translatingLabel={t('translating')}
+        {/* Title (shown here only when no translations exist) */}
+        {!hasTranslations && (
+          <h1 className="text-2xl font-bold leading-tight mb-4" style={{ color: 'var(--text-primary)' }}>
+            {article.title}
+          </h1>
+        )}
+
+        {/* Source and date */}
+        <div
+          className="flex items-center gap-3 text-xs mb-4"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <span>
+            <span className="font-medium">{t('source')}: </span>
+            {article.source.name}
+          </span>
+          <span>·</span>
+          <span>
+            <span className="font-medium">{t('published')}: </span>
+            {new Date(article.publishedAt).toLocaleDateString(locale, { dateStyle: 'medium' })}
+          </span>
+        </div>
+      </header>
+
+      {/* Language toggle + content (renders title inside toggle) */}
+      {hasTranslations ? (
+        <LanguageToggle
+          originalTitle={article.titleOriginal}
+          translatedTitle={localeTranslation?.title}
+          originalSummary={article.summaryOriginal ?? undefined}
+          translatedSummary={localeTranslation?.summary ?? undefined}
+          originalLabel={t('original')}
+          translationLabel={t('translation')}
+          translatingLabel={t('translating')}
+        />
+      ) : (
+        article.summary && (
+          <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--text-primary)' }}>
+            {article.summary}
+          </p>
+        )
+      )}
+
+      <hr style={{ borderColor: 'var(--border)' }} className="my-6" />
+
+      {/* Actions */}
+      <ShareButtons
+        url={shareUrl}
+        title={localeTranslation?.title ?? article.title}
+        shareLabel={t('share')}
+        copyLabel={t('copyLink')}
       />
 
-      {/* Meta */}
-      <div className="flex items-center gap-3 text-xs mt-4 mb-6" style={{ color: 'var(--text-secondary)' }}>
-        <span>{article.source.name}</span>
-        <span>·</span>
-        <span>{new Date(article.publishedAt).toLocaleDateString(locale, { dateStyle: 'medium' })}</span>
-      </div>
-
-      <hr style={{ borderColor: 'var(--border)' }} />
-
-      {/* Read original CTA */}
       <div className="mt-6">
         <a
           href={article.originalUrl}
@@ -101,54 +148,20 @@ export default async function NewsDetailPage({ params }: DetailProps) {
           className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium"
           style={{ backgroundColor: '#F0B90B', color: '#0B0E11' }}
         >
-          {t('readOriginal')} →
+          {t('readFullArticle')} →
         </a>
       </div>
-
-      {/* Share buttons */}
-      <ShareButtons
-        url={`${process.env.NEXT_PUBLIC_BASE_URL}/${locale}/news/${slug}`}
-        title={localeTranslation?.title ?? article.titleOriginal}
-        shareLabel={t('share')}
-        copyLabel={t('copyLink')}
-      />
-
-      {/* Related articles */}
-      {related.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {t('relatedNews')}
-          </h2>
-          <div className="space-y-3">
-            {related.map((r) => {
-              const rt = r.translations[0]
-              return (
-                <Link
-                  key={r.id}
-                  href={`/${locale}/news/${r.slug}`}
-                  className="block p-3 rounded border"
-                  style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-surface)' }}
-                >
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {rt?.title ?? r.titleOriginal}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {r.source.name}
-                  </p>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Disclaimer */}
       <div
         className="mt-12 p-4 rounded border text-xs"
         style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
       >
-        ⚠️ {t('disclaimer')}
+        {t('disclaimer')}
       </div>
-    </div>
+
+      {/* View tracking (fires on mount, renders nothing) */}
+      <ViewTracker slug={slug} />
+    </article>
   )
 }
