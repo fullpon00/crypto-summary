@@ -30,6 +30,11 @@ async function main() {
     { name: 'The Block', slug: 'the-block', url: 'https://www.theblock.co', feedUrl: 'https://www.theblock.co/rss.xml' },
     { name: 'Bitcoin Magazine', slug: 'bitcoin-magazine', url: 'https://bitcoinmagazine.com', feedUrl: 'https://bitcoinmagazine.com/feed' },
     { name: 'Decrypt', slug: 'decrypt', url: 'https://decrypt.co', feedUrl: 'https://decrypt.co/feed' },
+    { name: 'CryptoSlate', slug: 'cryptoslate', url: 'https://cryptoslate.com', feedUrl: 'https://cryptoslate.com/feed/' },
+    { name: 'BeInCrypto', slug: 'beincrypto', url: 'https://beincrypto.com', feedUrl: 'https://beincrypto.com/feed/' },
+    { name: 'NewsBTC', slug: 'newsbtc', url: 'https://www.newsbtc.com', feedUrl: 'https://www.newsbtc.com/feed/' },
+    { name: 'AMBCrypto', slug: 'ambcrypto', url: 'https://ambcrypto.com', feedUrl: 'https://ambcrypto.com/feed/' },
+    { name: 'Crypto Briefing', slug: 'crypto-briefing', url: 'https://cryptobriefing.com', feedUrl: 'https://cryptobriefing.com/feed/' },
   ]
 
   for (const source of sources) {
