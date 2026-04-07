@@ -29,7 +29,10 @@
     "relatedNews": "Related News",
     "disclaimer": "This site is for informational purposes only and does not constitute investment advice.",
     "backToNews": "← Back to News",
-    "noArticles": "No articles found"
+    "noArticles": "No articles found",
+    "readFullArticle": "Read full article",
+    "published": "Published",
+    "source": "Source"
   },
   "sidebar": {
     "trending": "Trending",
