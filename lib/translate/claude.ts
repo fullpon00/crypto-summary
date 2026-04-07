@@ -1,9 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk'
-
-const LANGUAGE_NAMES: Record<string, string> = {
-  ja: 'Japanese',
-  en: 'English',
-}
+// Free translation using MyMemory API (no API key required, 1000 req/day)
+// https://mymemory.translated.net/doc/spec.php
 
 interface TranslateInput {
   title: string
@@ -16,35 +12,35 @@ interface TranslateResult {
   summary?: string
 }
 
+async function translateText(text: string, langpair: string): Promise<string | null> {
+  if (!text.trim()) return text
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=${langpair}`
+    const res = await fetch(url, { next: { revalidate: 0 } })
+    if (!res.ok) return null
+    const data = await res.json() as { responseStatus: number; responseData: { translatedText: string } }
+    if (data.responseStatus !== 200) return null
+    return data.responseData.translatedText
+  } catch {
+    return null
+  }
+}
+
 export async function translateArticle(input: TranslateInput): Promise<TranslateResult | null> {
-  const langName = LANGUAGE_NAMES[input.targetLanguage] ?? input.targetLanguage
-
-  const prompt = `Translate this crypto news article to ${langName}.
-Return ONLY a JSON object with "title" and "summary" fields. No markdown, no explanation.
-
-Title: ${input.title.slice(0, 200)}
-Summary: ${(input.summary ?? '').slice(0, 500)}
-
-JSON:`
+  const langpair = `en|${input.targetLanguage}`
 
   try {
-    // Support both class instantiation (production) and factory function (test mock)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AnthropicAny = Anthropic as any
-    const client = (() => {
-      try {
-        return new AnthropicAny({ apiKey: process.env.ANTHROPIC_API_KEY })
-      } catch {
-        return AnthropicAny({ apiKey: process.env.ANTHROPIC_API_KEY })
-      }
-    })()
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      messages: [{ role: 'user', content: prompt }],
-    })
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
-    return JSON.parse(text.trim()) as TranslateResult
+    const [translatedTitle, translatedSummary] = await Promise.all([
+      translateText(input.title, langpair),
+      input.summary ? translateText(input.summary, langpair) : Promise.resolve(undefined),
+    ])
+
+    if (!translatedTitle) return null
+
+    return {
+      title: translatedTitle,
+      summary: translatedSummary ?? undefined,
+    }
   } catch (error) {
     console.error('[Translate] Failed:', error)
     return null
