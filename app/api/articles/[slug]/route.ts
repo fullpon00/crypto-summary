@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 
-export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const locale = new URL(request.url).searchParams.get('locale') ?? 'ja'
 
   const article = await prisma.article.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       source: true,
       translations: true,

@@ -9,9 +9,9 @@ import { BottomNav } from '@/components/layout/BottomNav'
 const locales = ['ja', 'en']
 
 export async function generateMetadata(
-  { params }: { params: { locale: string } }
+  { params }: { params: Promise<{ locale: string }> }
 ): Promise<Metadata> {
-  const locale = params.locale
+  const locale = (await params).locale
   return {
     title: { default: 'Crypto Summary', template: '%s | Crypto Summary' },
     description: locale === 'ja'
@@ -29,9 +29,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
-  const locale = params.locale
+  const locale = (await params).locale
   if (!locales.includes(locale)) notFound()
   const messages = await getMessages()
 
