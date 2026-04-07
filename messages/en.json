@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "home": "Home",
+    "news": "News",
+    "markets": "Markets",
+    "sources": "Sources"
+  },
+  "home": {
+    "title": "Crypto Summary",
+    "description": "Latest crypto news and market data"
+  },
+  "categories": {
+    "all": "All",
+    "breaking": "Breaking",
+    "bitcoin": "Bitcoin",
+    "ethereum": "Ethereum",
+    "regulation": "Regulation",
+    "etf": "ETF",
+    "defi": "DeFi",
+    "altcoins": "Altcoins"
+  },
+  "article": {
+    "readOriginal": "Read Original",
+    "translation": "Translation",
+    "original": "Original",
+    "translating": "Translating...",
+    "share": "Share",
+    "copyLink": "Copy Link",
+    "relatedNews": "Related News",
+    "disclaimer": "This site is for informational purposes only and does not constitute investment advice.",
+    "backToNews": "← Back to News",
+    "noArticles": "No articles found"
+  },
+  "sidebar": {
+    "trending": "Trending",
+    "quickStats": "Quick Stats"
+  },
+  "sources": {
+    "title": "News Sources",
+    "lastFetched": "Last Fetched",
+    "never": "Never"
+  },
+  "common": {
+    "loadMore": "Load More",
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  }
+}
