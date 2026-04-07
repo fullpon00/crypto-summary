@@ -40,6 +40,8 @@
   },
   "sources": {
     "title": "News Sources",
+    "description": "Source list",
+    "visitSite": "Visit Site",
     "lastFetched": "Last Fetched",
     "never": "Never"
   },

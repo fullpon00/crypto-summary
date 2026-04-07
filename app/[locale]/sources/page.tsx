@@ -1,49 +1,54 @@
 import { getTranslations } from 'next-intl/server'
-import { prisma } from '@/lib/db/prisma'
+import { RSS_SOURCES } from '@/lib/rss/sources'
+
+// Site URLs for each source (feedUrl is the RSS feed; provide the website URL here)
+const SITE_URLS: Record<string, string> = {
+  coindesk: 'https://www.coindesk.com',
+  cointelegraph: 'https://cointelegraph.com',
+  'the-block': 'https://www.theblock.co',
+  'bitcoin-magazine': 'https://bitcoinmagazine.com',
+  decrypt: 'https://decrypt.co',
+}
 
 export default async function SourcesPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
+  await params
   const t = await getTranslations('sources')
-
-  const sources = await prisma.source.findMany({
-    where: { isActive: true },
-    orderBy: { name: 'asc' },
-  })
 
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 pb-20 lg:pb-6">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
         {t('title')}
       </h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+        {t('description')}
+      </p>
       <div className="space-y-3">
-        {sources.map((source) => (
+        {RSS_SOURCES.map((source) => (
           <div
-            key={source.id}
+            key={source.slug}
             className="flex items-center justify-between p-4 rounded border"
             style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
           >
             <div>
-              <a
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium hover:underline"
-                style={{ color: 'var(--text-primary)' }}
-              >
+              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
                 {source.name}
-              </a>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                {t('lastFetched')}: {source.lastFetchedAt
-                  ? new Date(source.lastFetchedAt).toLocaleString(locale)
-                  : t('never')}
-              </p>
+              </span>
+              <span
+                className="ml-3 text-xs px-2 py-0.5 rounded border font-mono"
+                style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
+              >
+                {source.language.toUpperCase()}
+              </span>
             </div>
-            <span
-              className="text-xs px-2 py-0.5 rounded border font-mono"
-              style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
+            <a
+              href={SITE_URLS[source.slug] ?? source.feedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm px-3 py-1.5 rounded font-medium"
+              style={{ backgroundColor: '#F0B90B', color: '#0B0E11' }}
             >
-              {source.language.toUpperCase()}
-            </span>
+              {t('visitSite')}
+            </a>
           </div>
         ))}
       </div>

@@ -40,6 +40,8 @@
   },
   "sources": {
     "title": "ニュースソース",
+    "description": "配信元一覧",
+    "visitSite": "サイトを見る",
     "lastFetched": "最終取得",
     "never": "未取得"
   },

@@ -1,5 +1,7 @@
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
+
+export const dynamic = 'force-dynamic'
 import { TickerBar } from '@/components/market/TickerBar'
 import { FearGreedMeter } from '@/components/market/FearGreedMeter'
 import { CategoryTabs } from '@/components/news/CategoryTabs'

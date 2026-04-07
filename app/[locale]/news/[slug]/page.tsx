@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { LanguageToggle } from '@/components/news/LanguageToggle'
