@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
     prisma.article.count({ where }),
   ])
 
-  const data = articles.map((a) => ({
+  type ArticleWithRelations = (typeof articles)[number]
+  const data = articles.map((a: ArticleWithRelations) => ({
     id: a.id,
     slug: a.slug,
     source: a.source,
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     isBreaking: a.isBreaking,
     publishedAt: a.publishedAt,
     viewCount: a.viewCount,
-    categories: a.categories.map((ac) => ac.category),
+    categories: a.categories.map((ac: { category: unknown }) => ac.category),
   }))
 
   return NextResponse.json({ data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })

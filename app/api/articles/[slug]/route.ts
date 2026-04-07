@@ -19,14 +19,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!article) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const translation =
-    article.translations.find((t) => t.language === locale) ??
-    article.translations.find((t) => t.language === 'en')
+    article.translations.find((t: { language: string }) => t.language === locale) ??
+    article.translations.find((t: { language: string }) => t.language === 'en')
 
   return NextResponse.json({
     ...article,
     title: translation?.title ?? article.titleOriginal,
     summary: translation?.summary ?? article.summaryOriginal,
     allTranslations: article.translations,
-    categories: article.categories.map((ac) => ac.category),
+    categories: article.categories.map((ac: { category: unknown }) => ac.category),
   })
 }
